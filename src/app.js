@@ -1,107 +1,91 @@
 import { house } from "./data.js";
 
-const app =
-    document.getElementById("app");
+const app = document.getElementById("app");
 
-function createFunctionCard(func){
+function createFunctionCard(func) {
+    const isActive = func.state === true;
 
     return `
-        <div class="function">
+        <div class="function ${isActive ? "active" : ""}">
+            <div class="function-icon">
+                ○
+            </div>
 
-            ${func.label}
-
+            <div class="function-label">
+                ${func.label}
+            </div>
         </div>
     `;
 }
 
-function createHeatingRow(room){
-
-    if(!room.heating){
-
+function createHeatingRow(room) {
+    if (!room.heating) {
         return "";
     }
 
     return `
         <div class="temperature-row">
-
             <div class="temperature">
-
                 ${room.temperature} °C
-
             </div>
 
-            <div>
-
-                🔥
-                [-]
-
-                ${room.heating.target} °C
-
-                [+]
-
+            <div class="heating-control">
+                <span class="heating-symbol">♨</span>
+                <button type="button" class="temperature-button">−</button>
+                <span class="target-temperature">
+                    ${room.heating.target} °C
+                </span>
+                <button type="button" class="temperature-button">+</button>
             </div>
-
         </div>
     `;
 }
 
-function createRoom(room){
+function createRoom(room) {
+    const functions = room.functions
+        .map(createFunctionCard)
+        .join("");
 
     return `
-        <div class="room">
-
+        <article class="room">
             <div class="room-title">
-
                 ${room.label}
-
             </div>
 
             ${createHeatingRow(room)}
 
             <div class="function-grid">
-
-                ${room.functions
-                    .map(createFunctionCard)
-                    .join("")}
-
+                ${functions}
             </div>
-
-        </div>
+        </article>
     `;
 }
 
-function createSection(section){
+function createSection(section) {
+    const rooms = section.rooms
+        .map(createRoom)
+        .join("");
 
     return `
         <section class="section">
-
             <div class="section-title">
-
                 ${section.label}
-
             </div>
 
-            ${section.rooms
-                .map(createRoom)
-                .join("")}
-
+            ${rooms}
         </section>
     `;
 }
 
-app.innerHTML =
+const sections = [
+    house.groundFloor,
+    house.upperFloor,
+    house.atticFloor,
+    house.garden
+];
 
-`
-<div class="house-grid">
-
-    ${[
-        house.groundFloor,
-        house.upperFloor,
-        house.atticFloor,
-        house.garden
-    ]
-    .map(createSection)
-    .join("")}
-
-</div>
+app.innerHTML = `
+    <div class="house-grid">
+        ${sections.map(createSection).join("")}
+    </div>
 `;
