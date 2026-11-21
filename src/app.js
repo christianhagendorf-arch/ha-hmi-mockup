@@ -9,6 +9,12 @@ const sections = [
     house.garden
 ];
 
+function formatTemperature(value) {
+    return value
+        .toFixed(1)
+        .replace(".", ",");
+}
+
 function getFunctionIcon(func) {
     const icons = {
         entrance_light: "mdi-outdoor-lamp",
@@ -51,6 +57,41 @@ function getStatusLabel(state) {
     return labels[state] ?? state;
 }
 
+function supportsDimmer(func) {
+    return (
+        func.type === "dimmer" ||
+        func.type === "rgb-dimmer"
+    );
+}
+
+function createDimmerControl(sectionId, roomId, func) {
+    if (!supportsDimmer(func) || func.state !== true) {
+        return "";
+    }
+
+    return `
+        <div class="dimmer-control">
+            <input
+                type="range"
+                class="dimmer-slider"
+                min="1"
+                max="100"
+                step="1"
+                value="${func.brightness}"
+                data-action="change-brightness"
+                data-section-id="${sectionId}"
+                data-room-id="${roomId}"
+                data-function-id="${func.id}"
+                aria-label="Helligkeit ${func.label}"
+            >
+
+            <span class="dimmer-value">
+                ${func.brightness} %
+            </span>
+        </div>
+    `;
+}
+
 function createFunctionCard(sectionId, roomId, func) {
     const isStatus = func.type === "status";
     const isActive = func.state === true;
@@ -59,40 +100,62 @@ function createFunctionCard(sectionId, roomId, func) {
     if (isStatus) {
         return `
             <div class="function status-${func.state}">
-                <span class="function-icon" aria-hidden="true">
-                    <i class="mdi ${icon}"></i>
-                </span>
+                <div class="function-status-row">
+                    <span class="function-icon" aria-hidden="true">
+                        <i class="mdi ${icon}"></i>
+                    </span>
 
-                <span class="function-label">
-                    ${func.label}
-                </span>
+                    <span class="function-label">
+                        ${func.label}
+                    </span>
 
-                <span class="function-status">
-                    ${getStatusLabel(func.state)}
-                </span>
+                    <span class="function-status">
+                        ${getStatusLabel(func.state)}
+                    </span>
+                </div>
             </div>
         `;
     }
 
     return `
-        <button
-            type="button"
-            class="function ${isActive ? "active" : ""}"
-            data-action="toggle-function"
-            data-section-id="${sectionId}"
-            data-room-id="${roomId}"
-            data-function-id="${func.id}"
-            aria-pressed="${isActive}"
-        >
-            <span class="function-icon" aria-hidden="true">
-                <i class="mdi ${icon}"></i>
-            </span>
+        <div class="function ${isActive ? "active" : ""}">
+            <div class="function-main">
+                <button
+                    type="button"
+                    class="function-toggle"
+                    data-action="toggle-function"
+                    data-section-id="${sectionId}"
+                    data-room-id="${roomId}"
+                    data-function-id="${func.id}"
+                    aria-pressed="${isActive}"
+                >
+                    <span class="function-icon" aria-hidden="true">
+                        <i class="mdi ${icon}"></i>
+                    </span>
 
-            <span class="function-label">
-                ${func.label}
-            </span>
-        </button>
+                    <span class="function-label">
+                        ${func.label}
+                    </span>
+                </button>
+            </div>
+
+            ${createDimmerControl(sectionId, roomId, func)}
+        </div>
     `;
+}
+
+function getHeatingState(room) {
+    if (room.heating.hvac === "off") {
+        return "off";
+    }
+
+    const heatingThreshold = room.heating.target - 0.2;
+
+    if (room.temperature < heatingThreshold) {
+        return "heating";
+    }
+
+    return "ready";
 }
 
 function createHeatingRow(sectionId, room) {
@@ -100,24 +163,31 @@ function createHeatingRow(sectionId, room) {
         return "";
     }
 
-    const isActive = room.heating.hvac !== "off";
+    const heatingState = getHeatingState(room);
+    const isEnabled = heatingState !== "off";
+
+    const heatingTitle = {
+        off: "Heizung aus",
+        ready: "Heizung eingeschaltet",
+        heating: "Heizung heizt"
+    }[heatingState];
 
     return `
         <div class="temperature-row">
             <div class="temperature">
-                ${room.temperature.toFixed(1).replace(".", ",")} °C
+                ${formatTemperature(room.temperature)} °C
             </div>
 
             <div class="heating-control">
                 <button
                     type="button"
-                    class="heating-toggle ${isActive ? "active" : ""}"
+                    class="heating-toggle ${heatingState}"
                     data-action="toggle-heating"
                     data-section-id="${sectionId}"
                     data-room-id="${room.id}"
-                    title="Heizung ein- oder ausschalten"
-                    aria-label="Heizung ein- oder ausschalten"
-                    aria-pressed="${isActive}"
+                    title="${heatingTitle}"
+                    aria-label="${heatingTitle}"
+                    aria-pressed="${isEnabled}"
                 >
                     <i class="mdi mdi-radiator"></i>
                 </button>
@@ -134,7 +204,7 @@ function createHeatingRow(sectionId, room) {
                 </button>
 
                 <span class="target-temperature">
-                    ${room.heating.target.toFixed(1).replace(".", ",")} °
+                    ${formatTemperature(room.heating.target)} °
                 </span>
 
                 <button
@@ -210,7 +280,13 @@ function createCoverControl(sectionId, room) {
 
 function createRoom(sectionId, room) {
     const functions = room.functions
-        .map((func) => createFunctionCard(sectionId, room.id, func))
+        .map((func) =>
+            createFunctionCard(
+                sectionId,
+                room.id,
+                func
+            )
+        )
         .join("");
 
     return `
@@ -231,7 +307,9 @@ function createRoom(sectionId, room) {
 
 function createSection(section) {
     const rooms = section.rooms
-        .map((room) => createRoom(section.id, room))
+        .map((room) =>
+            createRoom(section.id, room)
+        )
         .join("");
 
     return `
@@ -246,13 +324,25 @@ function createSection(section) {
 }
 
 function findSection(sectionId) {
-    return sections.find((section) => section.id === sectionId);
+    return sections.find(
+        (section) => section.id === sectionId
+    );
 }
 
 function findRoom(sectionId, roomId) {
     const section = findSection(sectionId);
 
-    return section?.rooms.find((room) => room.id === roomId);
+    return section?.rooms.find(
+        (room) => room.id === roomId
+    );
+}
+
+function findFunction(sectionId, roomId, functionId) {
+    const room = findRoom(sectionId, roomId);
+
+    return room?.functions.find(
+        (func) => func.id === functionId
+    );
 }
 
 function render() {
@@ -264,19 +354,26 @@ function render() {
 }
 
 function toggleFunction(sectionId, roomId, functionId) {
-    const room = findRoom(sectionId, roomId);
-    const func = room?.functions.find((item) => item.id === functionId);
+    const func = findFunction(
+        sectionId,
+        roomId,
+        functionId
+    );
 
     if (!func || func.type === "status") {
         return;
     }
 
     func.state = !func.state;
+
     render();
 }
 
 function toggleHeating(sectionId, roomId) {
-    const room = findRoom(sectionId, roomId);
+    const room = findRoom(
+        sectionId,
+        roomId
+    );
 
     if (!room?.heating) {
         return;
@@ -291,22 +388,51 @@ function toggleHeating(sectionId, roomId) {
 }
 
 function changeTemperature(sectionId, roomId, change) {
-    const room = findRoom(sectionId, roomId);
+    const room = findRoom(
+        sectionId,
+        roomId
+    );
 
     if (!room?.heating) {
         return;
     }
 
-    const nextTarget = room.heating.target + change;
+    const nextTarget =
+        room.heating.target + change;
 
     room.heating.target =
-        Math.min(24, Math.max(16, nextTarget));
+        Math.min(
+            24,
+            Math.max(16, nextTarget)
+        );
 
     render();
 }
 
+function updateBrightness(
+    sectionId,
+    roomId,
+    functionId,
+    brightness
+) {
+    const func = findFunction(
+        sectionId,
+        roomId,
+        functionId
+    );
+
+    if (!func || !supportsDimmer(func)) {
+        return;
+    }
+
+    func.brightness = Number(brightness);
+}
+
 function operateCover(sectionId, roomId, operation) {
-    const room = findRoom(sectionId, roomId);
+    const room = findRoom(
+        sectionId,
+        roomId
+    );
 
     if (!room?.cover) {
         return;
@@ -328,7 +454,8 @@ function operateCover(sectionId, roomId, operation) {
 }
 
 app.addEventListener("click", (event) => {
-    const control = event.target.closest("[data-action]");
+    const control =
+        event.target.closest("[data-action]");
 
     if (!control) {
         return;
@@ -342,31 +469,91 @@ app.addEventListener("click", (event) => {
     } = control.dataset;
 
     if (action === "toggle-function") {
-        toggleFunction(sectionId, roomId, functionId);
+        toggleFunction(
+            sectionId,
+            roomId,
+            functionId
+        );
     }
 
     if (action === "toggle-heating") {
-        toggleHeating(sectionId, roomId);
+        toggleHeating(
+            sectionId,
+            roomId
+        );
     }
 
     if (action === "temperature-down") {
-        changeTemperature(sectionId, roomId, -0.5);
+        changeTemperature(
+            sectionId,
+            roomId,
+            -0.5
+        );
     }
 
     if (action === "temperature-up") {
-        changeTemperature(sectionId, roomId, 0.5);
+        changeTemperature(
+            sectionId,
+            roomId,
+            0.5
+        );
     }
 
     if (action === "cover-up") {
-        operateCover(sectionId, roomId, "up");
+        operateCover(
+            sectionId,
+            roomId,
+            "up"
+        );
     }
 
     if (action === "cover-stop") {
-        operateCover(sectionId, roomId, "stop");
+        operateCover(
+            sectionId,
+            roomId,
+            "stop"
+        );
     }
 
     if (action === "cover-down") {
-        operateCover(sectionId, roomId, "down");
+        operateCover(
+            sectionId,
+            roomId,
+            "down"
+        );
+    }
+});
+
+app.addEventListener("input", (event) => {
+    const slider = event.target.closest(
+        '[data-action="change-brightness"]'
+    );
+
+    if (!slider) {
+        return;
+    }
+
+    const {
+        sectionId,
+        roomId,
+        functionId
+    } = slider.dataset;
+
+    updateBrightness(
+        sectionId,
+        roomId,
+        functionId,
+        slider.value
+    );
+
+    const valueLabel =
+        slider
+            .closest(".dimmer-control")
+            ?.querySelector(".dimmer-value");
+
+    if (valueLabel) {
+        valueLabel.textContent =
+            `${slider.value} %`;
     }
 });
 
