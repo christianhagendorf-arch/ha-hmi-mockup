@@ -1,0 +1,138 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+
+    background: var(--bg);
+
+    color: var(--text);
+
+    font-family:
+        Inter,
+        Segoe UI,
+        sans-serif;
+}
+
+.header {
+
+    position: sticky;
+
+    top: 0;
+
+    padding: 20px;
+
+    border-bottom: 1px solid var(--border);
+
+    background: var(--bg);
+}
+
+.header h1 {
+
+    margin: 0;
+}
+
+#app {
+
+    padding: 20px;
+}
+
+.section {
+
+    margin-bottom: 30px;
+}
+
+.section-title {
+
+    font-size: 24px;
+
+    margin-bottom: 16px;
+}
+
+.room-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fit,
+            minmax(320px, 1fr)
+        );
+
+    gap: 16px;
+}
+
+.room {
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: 18px;
+
+    padding: 16px;
+}
+
+.room-title {
+
+    font-size: 20px;
+
+    font-weight: 600;
+
+    margin-bottom: 12px;
+}
+
+.temperature-row {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 16px;
+
+    margin-bottom: 12px;
+
+    padding: 10px;
+
+    border-radius: 12px;
+
+    background: var(--surface-2);
+}
+
+.temperature {
+
+    color: var(--temp);
+
+    font-weight: 700;
+}
+
+.function-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 10px;
+}
+
+.function {
+
+    background: var(--surface-2);
+
+    border-radius: 12px;
+
+    padding: 10px;
+}
+
+@media(max-width:650px){
+
+    .function-grid{
+
+        grid-template-columns:1fr;
+    }
+}
