@@ -1,8 +1,9 @@
 import { house } from "./data.js";
 
-const app = document.getElementById("app");
+const app =
+    document.getElementById("app");
 
-function createFunctionCard(func) {
+function createFunctionCard(func){
 
     return `
         <div class="function">
@@ -13,9 +14,10 @@ function createFunctionCard(func) {
     `;
 }
 
-function createHeatingRow(room) {
+function createHeatingRow(room){
 
-    if (!room.heating) {
+    if(!room.heating){
+
         return "";
     }
 
@@ -23,18 +25,19 @@ function createHeatingRow(room) {
         <div class="temperature-row">
 
             <div class="temperature">
+
                 ${room.temperature} °C
+
             </div>
 
             <div>
 
                 🔥
-
-                -
+                [-]
 
                 ${room.heating.target} °C
 
-                +
+                [+]
 
             </div>
 
@@ -42,10 +45,9 @@ function createHeatingRow(room) {
     `;
 }
 
-function createRoom(room) {
+function createRoom(room){
 
     return `
-
         <div class="room">
 
             <div class="room-title">
@@ -68,10 +70,9 @@ function createRoom(room) {
     `;
 }
 
-function createSection(section) {
+function createSection(section){
 
     return `
-
         <section class="section">
 
             <div class="section-title">
@@ -80,24 +81,27 @@ function createSection(section) {
 
             </div>
 
-            <div class="room-grid">
-
-                ${section.rooms
-                    .map(createRoom)
-                    .join("")}
-
-            </div>
+            ${section.rooms
+                .map(createRoom)
+                .join("")}
 
         </section>
     `;
 }
 
 app.innerHTML =
-    [
+
+`
+<div class="house-grid">
+
+    ${[
         house.groundFloor,
         house.upperFloor,
         house.atticFloor,
         house.garden
     ]
     .map(createSection)
-    .join("");
+    .join("")}
+
+</div>
+`;
