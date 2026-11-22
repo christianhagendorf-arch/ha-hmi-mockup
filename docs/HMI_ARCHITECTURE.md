@@ -75,7 +75,7 @@ The project separates backend language from HMI language.
 
 | Layer | Language | Example |
 |---|---|---|
-| Physical device/network name | English, with persistent hardware number | `sonoff-mini-11-heating-living-room` |
+| Physical device/network name | English, with persistent hardware number | `sonoff-mini-11` |
 | Home Assistant entity ID | English | `climate.living_room` |
 | HMI room/function label | German, concise | `Wohnzimmer`, `Heizung`, `TV-Board` |
 
@@ -417,13 +417,13 @@ Physical device
 Example:
 
 ```text
-sonoff-mini-11-heating-living-room
-→ switch.sonoff_mini_11_heating_living_room
+sonoff-mini-11
+→ switch.sonoff_11
 → climate.living_room
 → HMI: Wohnzimmer / Heizung
 ```
 
-Physical numbering remains traceable for maintenance, Fritz!Box identification, replacement, and fault diagnosis.
+Physical numbering remains traceable for maintenance, Fritz!Box identification, replacement, and fault diagnosis. MQTT/firmware identifiers remain numbered and independent of room or purpose. Current installation purpose is maintained in the hardware inventory and functional Home Assistant layer rather than encoded into the device name.
 
 ## 11. Implementation strategy
 

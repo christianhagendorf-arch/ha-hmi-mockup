@@ -25,22 +25,26 @@ Example:
 
 ```text
 sonoff_11
-→ sonoff-mini-11-heating-living-room
+→ sonoff-mini-11
 → installed heating actuator in the living room
 ```
 
 A replacement installed in the same documented position may inherit the installation identifier, but the replacement event must be recorded in the history field.
 
-### 2.2 Separate physical and functional naming
+### 2.2 Stable field-device naming
+
+MQTT, firmware, and canonical device IDs remain numbered and independent of installation purpose. A descriptive Fritz!Box display name may include room/purpose as an operator convenience, but is not the canonical identity.
+
+### 2.3 Separate physical and functional naming
 
 Example layers:
 
 ```text
 Physical/network device:
-sonoff-mini-11-heating-living-room
+sonoff-mini-11
 
 Raw Home Assistant entity:
-switch.sonoff_mini_11_heating_living_room
+switch.sonoff_11
 
 Functional entity:
 climate.living_room
@@ -49,7 +53,7 @@ HMI:
 Wohnzimmer / Heizung
 ```
 
-### 2.3 Record uncertainty explicitly
+### 2.4 Record uncertainty explicitly
 
 The legacy configuration does not always prove the exact device model, mounting position, circuit, or network hostname. Unknown values are marked `TBD` and confirmed room by room during migration.
 
@@ -67,7 +71,8 @@ Each physical device should eventually include:
 | Floor/room | Physical location using canonical English room keys |
 | Installation position | Switch box, outlet, cabinet, radiator, ceiling, etc. |
 | Physical function | What the device electrically controls or measures |
-| Network/device name | Fritz!Box hostname, MQTT/Zigbee name, or firmware name |
+| Stable device/MQTT ID | Numbered, location-independent device identity |
+| Optional router display name | Descriptive Fritz!Box label; not canonical |
 | Current raw entity | Existing Home Assistant entity ID |
 | Target raw entity | Planned integration/raw entity ID |
 | Functional entity | Planned stable functional entity/group |
@@ -97,21 +102,21 @@ For devices without an established number, assign a new inventory number only af
 
 ### 5.1 Sonoff devices
 
-| Inventory ID | Existing identifier | Proposed network/device name | Floor / room | Physical function | Current raw entity | Target raw entity | Functional entity | HMI label | Status / notes |
+| Inventory ID | Stable device/MQTT ID | Optional router display name | Floor / room | Physical function | Current/raw entity | Functional entity | HMI label | Status / notes |
 |---|---|---|---|---|---|---|---|---|---|
-| `HW-SONOFF-MINI-04` | `sonoff_4` | `sonoff-mini-04-light-office-pinboard` | `first_floor / office` | Pinboard lighting; part of office work-light arrangement | `switch.sonoff_4` | `switch.sonoff_mini_04_light_office_pinboard` | `light.office_pinboard`; member of `light.office_work_lights` | Pinnwand | Partially identified. Exact switch-box position and model to verify. |
-| `HW-SONOFF-MINI-09` | `sonoff_9` | `sonoff-mini-09-light-bedroom-cycle` | `first_floor / bedroom` | Physical switching input involved in cyclic office/bedroom lighting logic | `switch.sonoff_9` | TBD after wiring review | `light.bedroom_ceiling` through functional logic | Schlafzimmerlicht | Partially identified. Shared switching logic caused by room division and one ceiling outlet. Do not migrate blindly. |
-| `HW-SONOFF-MINI-11` | `sonoff_11` | `sonoff-mini-11-heating-living-room` | `ground_floor / living_room` | Living-room heating actuator | `switch.sonoff_11` | `switch.sonoff_mini_11_heating_living_room` | `climate.living_room` | Heizung | Identified from legacy heating package. Exact installation position to document physically. |
-| `HW-SONOFF-MINI-12` | `sonoff_12` | `sonoff-mini-12-heating-kitchen` | `ground_floor / kitchen` | Kitchen heating actuator | `switch.sonoff_12` | `switch.sonoff_mini_12_heating_kitchen` | `climate.kitchen` | Heizung | Identified from legacy heating package. Exact installation position to document physically. |
-| `HW-SONOFF-MINI-14` | `sonoff_14` | `sonoff-mini-14-light-utility-room` | `ground_floor / utility_room` | Utility-room light | `switch.sonoff_14` | `switch.sonoff_mini_14_light_utility_room` | Prefer functional light abstraction: `light.utility_room_ceiling` | Licht | Identified. Used with motion-sensor automation. Exact model/box to verify. |
-| `HW-SONOFF-MINI-15` | `sonoff_15` | `sonoff-mini-15-light-guest-bathroom` | `ground_floor / guest_bathroom` | Guest-bathroom light | `switch.sonoff_15` | `switch.sonoff_mini_15_light_guest_bathroom` | Prefer functional light abstraction: `light.guest_bathroom_ceiling` | Licht | Identified. Used with motion-sensor automation. Exact model/box to verify. |
-| `HW-SONOFF-ZBMINIR2-DG1` | `sonoff_zbminir2_dg1` | `sonoff-zbminir2-01-light-lotta-room` | `second_floor / lotta_room` | Physical switch for Lotta's ceiling lighting | Existing entity to confirm | `switch.sonoff_zbminir2_01_light_lotta_room` | `light.lotta_room_ceiling` | LED-Decke | Partially identified. Zigbee model appears known from legacy name; exact device/entity and installation box to verify. |
+| `HW-SONOFF-MINI-04` | `sonoff-mini-04` | `sonoff-mini-04-light-office-pinboard` or current Fritz!Box label | `first_floor / office` | Pinboard lighting; part of office work-light arrangement | `switch.sonoff_4` | `light.office_pinboard`; member of `light.office_work_lights` | Pinnwand | Partially identified. Exact switch-box position and model to verify. |
+| `HW-SONOFF-MINI-09` | `sonoff-mini-09` | Current descriptive Fritz!Box label TBD | `first_floor / bedroom` | Physical switching input involved in cyclic office/bedroom lighting logic | `switch.sonoff_9` | `light.bedroom_ceiling` through functional logic | Schlafzimmerlicht | Partially identified. Shared switching logic; do not migrate blindly. |
+| `HW-SONOFF-MINI-11` | `sonoff-mini-11` | `sonoff-mini-11-heating-wozi` or current Fritz!Box label | `ground_floor / living_room` | Living-room heating actuator | `switch.sonoff_11` | `climate.living_room` | Heizung | Identified from legacy heating package. Device ID remains purpose-independent. Exact installation position to document. |
+| `HW-SONOFF-MINI-12` | `sonoff-mini-12` | Current descriptive Fritz!Box label TBD | `ground_floor / kitchen` | Kitchen heating actuator | `switch.sonoff_12` | `climate.kitchen` | Heizung | Identified from legacy heating package. Device ID remains purpose-independent. |
+| `HW-SONOFF-MINI-14` | `sonoff-mini-14` | Current descriptive Fritz!Box label TBD | `ground_floor / utility_room` | Utility-room light | `switch.sonoff_14` | Prefer functional light abstraction: `light.utility_room_ceiling` | Licht | Identified. Used with motion automation. Exact model/box to verify. |
+| `HW-SONOFF-MINI-15` | `sonoff-mini-15` | Current descriptive Fritz!Box label TBD | `ground_floor / guest_bathroom` | Guest-bathroom light | `switch.sonoff_15` | Prefer functional light abstraction: `light.guest_bathroom_ceiling` | Licht | Identified. Used with motion automation. Exact model/box to verify. |
+| `HW-SONOFF-ZBMINIR2-DG1` | Existing numbered Zigbee device ID to confirm | Current descriptive Zigbee/Fritz!Box label TBD | `second_floor / lotta_room` | Physical switch for Lotta ceiling lighting | Existing entity to confirm | `light.lotta_room_ceiling` | LED-Decke | Partially identified. Exact device/entity and installation box to verify. |
 
 ### 5.2 Gosund smart plugs
 
-| Inventory ID | Existing identifier | Proposed network/device name | Floor / room | Physical function | Current raw entity | Target raw entity | Functional entity | HMI label | Status / notes |
+| Inventory ID | Stable device/MQTT ID | Optional router display name | Floor / room | Physical function | Current/raw entity | Functional entity | HMI label | Status / notes |
 |---|---|---|---|---|---|---|---|---|---|
-| `HW-GOSUND-PLUG-06` | `gosund_6` | `gosund-plug-06-tv-board-living-room` | `ground_floor / living_room` | TV-board power supply | `switch.gosund_6` | `switch.gosund_plug_06_tv_board_living_room` | `switch.living_room_tv_board` | TV-Board | Identified. Existing automatic shutdown uses power measurement. Record exact outlet position. |
+| `HW-GOSUND-PLUG-06` | `gosund-plug-06` | Current descriptive Fritz!Box label TBD | `ground_floor / living_room` | TV-board power supply | `switch.gosund_6` | `switch.living_room_tv_board` | TV-Board | Identified. Existing automatic shutdown uses power measurement. |
 | TBD | Washing-machine plug | TBD | `ground_floor / guest_bathroom` | Washing-machine power measurement and operating-state detection | Existing entity to extract from appliance package | TBD | `sensor.washing_machine_state` plus technical power sensor | Waschmaschine | Device family appears to be Gosund from legacy logic; number/model and outlet position to verify. |
 | TBD | Dryer plug | TBD | `ground_floor / guest_bathroom` | Dryer power measurement and operating-state detection | Existing entity to extract from appliance package | TBD | `sensor.dryer_state` plus technical power sensor | Trockner | Device family appears to be Gosund from legacy logic; number/model and outlet position to verify. |
 
@@ -266,7 +271,8 @@ Copy this block for each newly verified device when the summary tables are insuf
 - **Floor/room:**
 - **Installation position:**
 - **Electrical load/function:**
-- **Network/device name:**
+- **Stable device/MQTT ID:**
+- **Optional router display name:**
 - **MAC/IEEE/serial:** Stored privately / not recorded
 - **Current raw entity:**
 - **Target raw entity:**

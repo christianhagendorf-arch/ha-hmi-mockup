@@ -20,8 +20,8 @@ All new backend identifiers use English. The family-facing HMI uses concise Germ
 
 | Layer | Example |
 |---|---|
-| Physical/network name | `sonoff-mini-11-heating-living-room` |
-| Raw Home Assistant entity | `switch.sonoff_mini_11_heating_living_room` |
+| Physical/network name | `sonoff-mini-11` |
+| Raw Home Assistant entity | `switch.sonoff_11` |
 | Functional Home Assistant entity | `climate.living_room` |
 | HMI room | `Wohnzimmer` |
 | HMI control | `Heizung` |
@@ -238,44 +238,78 @@ Lotta
 Lene
 ```
 
-## 5. Physical device and network names
+## 5. Physical device, MQTT, and network names
 
-### 5.1 Pattern
+### 5.1 Stable device identity
 
-Physical device names use hyphens because these names may be shown in the Fritz!Box, device firmware, DHCP lists, MQTT, or Zigbee2MQTT.
+Physical MQTT and firmware identifiers remain numbered and independent of room or purpose.
+
+Preferred examples:
 
 ```text
-<vendor-or-family>-<model-or-type>-<number>-<function>-<room>
+sonoff-mini-11
+sonoff-mini-12
+gosund-plug-06
+shelly-1pm-01
 ```
 
-Examples:
+Do not rename a stable field device to encode the current installation purpose:
 
 ```text
 sonoff-mini-11-heating-living-room
-sonoff-mini-12-heating-kitchen
-sonoff-mini-14-light-utility-room
-sonoff-mini-15-light-guest-bathroom
-gosund-plug-06-tv-board-living-room
 ```
 
-### 5.2 Rules
+The purpose may change after a renovation or device move. The stable identifier must still identify the same physical unit.
 
-- Keep the existing hardware number where one exists.
-- Use two digits for numbered device families where practical: `06`, `11`, `12`.
-- Do not reuse identifiers for unrelated devices.
-- A replacement in the same physical position may inherit the installation identifier, but the inventory must record the replacement date and old/new device details.
-- Network hostnames must remain short enough for the target device and router. Where a firmware hostname limit applies, use a documented shortened form rather than silently inventing abbreviations.
+### 5.2 Installation context belongs in documentation
 
-### 5.3 Raw entity IDs
+The current room, installation position, electrical load, and function are recorded in `HARDWARE_INVENTORY.md` and linked through `ENTITY_MAPPING.md`.
 
-Where integration-level renaming is safe, raw entity IDs mirror the physical identity with underscores:
+Example:
 
 ```text
-switch.sonoff_mini_11_heating_living_room
-switch.gosund_plug_06_tv_board_living_room
+Stable MQTT/device ID: sonoff-mini-11
+Current installation: living-room heating actuator
+Current raw entity: switch.sonoff_11
+Functional entity: climate.living_room
+HMI: Wohnzimmer / Heizung
 ```
 
-Raw entity IDs may retain integration-generated names when renaming would be fragile. In that case the mapping document is mandatory.
+### 5.3 Router display names
+
+A descriptive Fritz!Box display name may be used as an optional operator aid, for example:
+
+```text
+sonoff-mini-11-heating-wozi
+```
+
+This display name is not the canonical device identity and must not be used as the only mapping source.
+
+### 5.4 Numbering rules
+
+- Preserve the existing device number where one exists.
+- Do not reuse a number for an unrelated physical device.
+- A replacement in the same documented installation position may inherit an installation slot only when the replacement is recorded in the inventory history.
+- Keep firmware/MQTT names within platform length restrictions.
+- Do not silently invent room abbreviations in canonical identifiers.
+
+### 5.5 Raw integration entities
+
+Existing numbered raw entities may remain stable:
+
+```text
+switch.sonoff_11
+switch.gosund_6
+```
+
+They are implementation entities and are not shown directly in the family HMI. Functional entities provide the stable room/function layer:
+
+```text
+climate.living_room
+switch.living_room_tv_board
+```
+
+Raw-entity renaming is optional, not a migration objective. Rename only when the integration supports it safely and the benefit outweighs reference churn.
 
 ## 6. Domain-specific conventions
 
@@ -786,7 +820,7 @@ Example:
 
 ```text
 legacy entity: switch.sonoff_11
-new raw entity: switch.sonoff_mini_11_heating_living_room
+new raw entity: switch.sonoff_11
 functional entity: climate.living_room
 removal condition: all automations and dashboards migrated
 ```

@@ -73,10 +73,10 @@ This document grows room by room. Values marked `TBD` require configuration revi
 
 | HMI label | Capability | Target functional entity | Current/legacy entity | Physical/raw entity | Source/configuration | Migration approach | Status | Notes / validation |
 |---|---|---|---|---|---|---|---|---|
-| Raumtemperatur | Sensor | `sensor.living_room_temperature` | Existing room-temperature sensor TBD | Physical temperature sensor TBD | `wozi_climate.yaml`, climate view | Reuse or rename verified room sensor | `to_verify` | Confirm sensor placement and difference from TRV temperature. |
-| Heizung | Climate | `climate.living_room` | Legacy generic thermostat entity TBD | `switch.sonoff_11` / `HW-SONOFF-MINI-11` | `wozi_climate.yaml` | Rebuild functional climate entity with 0.5 °C step and modes `off`, `auto`, `heat` where supported | `mapped` | Validate actuator, room sensor, HVAC behavior, restart behavior, and pump-demand integration. |
-| Bogenlampe | Preset light | `light.living_room_arc_lamp` | Legacy light/scripts TBD | Shelly controller and power sensor TBD | `wozi_lampe.yaml` | Preserve low/medium/high behavior behind a functional light or scripts; exact abstraction to decide in pilot | `mapped` | Current control uses scripts and power evaluation, not a conventional dimmer. Test on/off and all presets. |
-| TV-Board | Switch | `switch.living_room_tv_board` | `switch.gosund_6` | `HW-GOSUND-PLUG-06` | `wozi_tv_board.yaml` | Create stable functional switch or rename safely; preserve power-based shutdown automation | `mapped` | Confirm power sensor entity and five-minute shutdown behavior. |
+| Raumtemperatur | Sensor | `sensor.living_room_temperature` | `sensor.temp_wozi_temperature` | Physical temperature sensor TBD | `wozi_climate.yaml`, `eg.yaml` | Verify the physical sensor, then rename or create a compatibility alias | `mapped` | The entity is confirmed as the `generic_thermostat` target sensor and dashboard room temperature. Physical model and placement remain to verify; keep separate from any TRV temperature. |
+| Heizung | Climate | `climate.living_room` | `climate.heizung_wohnzimmer` | `switch.sonoff_11` / `HW-SONOFF-MINI-11` | `wozi_climate.yaml`, `eg.yaml`, `hwr_pumpe.yaml` | Rebuild or safely rename the existing `generic_thermostat`; preserve the confirmed 16–24 °C range and 0.5 °C target step | `mapped` | Current configuration uses target `21.5 °C`, cold tolerance `0.1`, hot tolerance `0`, keep-alive `3 min`, initial mode `heat`, away `18 °C`, comfort `21.5 °C`, sleep `16 °C`, and precision `0.1`. Native support for `auto` is not proven by the generic thermostat configuration even though the legacy dashboard offers it; verify before implementing the target HVAC modes. Validate restart behavior and heating-pump demand integration. |
+| Bogenlampe | Switched light with presets | `light.living_room_arc_lamp` (preferred functional abstraction; confirm during pilot) | `switch.shelly1pm_244cab4330f0`; `script.bogenlampe_intensity_low`; `script.bogenlampe_intensity_med`; `script.bogenlampe_intensity_high` | `switch.shelly1pm_244cab4330f0`; `sensor.shelly1pm_244cab4330f0_power`; physical Shelly model/location TBD | `wozi_lampe.yaml` | Build a functional light abstraction for normal on/off and retain three explicit preset actions; do not model it as a normal percentage dimmer | `mapped` | Presets are reached by repeated 200 ms power cycles with 8 s settling time and power thresholds: low `<4.0 W`, medium `4.5–6.5 W`, high `>7 W`. Add retry/time-out protection before replacing the legacy scripts, otherwise the current unbounded repeat can loop indefinitely when the power sensor is unavailable or never reaches the threshold. Verify off-state detection and power-loss behavior. |
+| TV-Board | Switch | `switch.living_room_tv_board` | `switch.gosund_6` | `switch.gosund_6`; `sensor.gosund_6_energy_power`; `HW-GOSUND-PLUG-06` | `wozi_tv_board.yaml` | Create a stable functional switch or safely rename the existing entity; preserve the automatic shutdown and physical/MQTT button behavior | `mapped` | Confirmed auto-off: power below `5 W` for `5 min` turns the socket off. Confirmed MQTT/device-button action turns it on only while currently off. Device IDs are legacy-installation references and must be remapped if the device registry changes. |
 
 ### 5.3 Küche
 
@@ -275,8 +275,8 @@ Before writing the first production-like YAML pilot, complete these items:
 - [ ] Confirm current room-temperature sensor entity.
 - [ ] Confirm physical room-temperature sensor location.
 - [ ] Confirm `switch.sonoff_11` controls only living-room heating.
-- [ ] Confirm Fritz!Box/device name `sonoff-mini-11-heating-wozi` or current equivalent.
-- [ ] Decide the exact target network name.
+- [ ] Confirm stable MQTT/device ID `sonoff-mini-11`. Record the current descriptive Fritz!Box display name separately.
+- [ ] Do not rename the stable MQTT/device ID for room or purpose; only document or adjust the optional router display name if useful.
 - [ ] Confirm current generic-thermostat entity ID.
 - [ ] Confirm required HVAC modes with the selected climate implementation.
 - [ ] Confirm 0.5 °C target step.
