@@ -570,13 +570,59 @@ function toggleHeating(sectionId, roomId) {
         return;
     }
 
-    room.heating.hvac =
-        room.heating.hvac === "off"
-            ? "auto"
-            : "off";
+    if (room.heating.hvac === "off") {
+        room.heating.hvac =
+            room.heating.lastActiveHvac ??
+            "auto";
+    } else {
+        room.heating.lastActiveHvac =
+            room.heating.hvac;
+
+        room.heating.hvac = "off";
+    }
 
     saveState();
     render();
+}
+
+function selectHvacMode(
+    sectionId,
+    roomId,
+    hvacMode
+) {
+    const room = findRoom(
+        sectionId,
+        roomId
+    );
+
+    if (!room?.heating) {
+        return;
+    }
+
+    const supportedModes = [
+        "off",
+        "auto",
+        "heat"
+    ];
+
+    if (!supportedModes.includes(hvacMode)) {
+        return;
+    }
+
+    room.heating.hvac = hvacMode;
+
+    if (hvacMode !== "off") {
+        room.heating.lastActiveHvac =
+            hvacMode;
+    }
+
+    saveState();
+    render();
+
+    refreshOpenModal(
+        sectionId,
+        roomId
+    );
 }
 
 function changeTemperature(sectionId, roomId, change) {
@@ -740,6 +786,110 @@ function createDetailFunction(
                 roomId,
                 func
             )}
+        </div>
+    `;
+}
+
+function createRoomClimateDetails(
+    sectionId,
+    room
+) {
+    if (!room.heating) {
+        return "";
+    }
+
+    const heatingState =
+        getHeatingState(room);
+
+    const modeLabels = {
+        off: "Aus",
+        auto: "Auto",
+        heat: "Heizen"
+    };
+
+    const modeIcons = {
+        off: "mdi-power",
+        auto: "mdi-autorenew",
+        heat: "mdi-fire"
+    };
+
+    const modes = [
+        "off",
+        "auto",
+        "heat"
+    ];
+
+    const modeButtons = modes
+        .map((mode) => {
+            const isActive =
+                room.heating.hvac === mode;
+
+            return `
+                <button
+                    type="button"
+                    class="hvac-mode
+                        ${isActive ? "active" : ""}"
+                    data-modal-action="select-hvac"
+                    data-section-id="${sectionId}"
+                    data-room-id="${room.id}"
+                    data-hvac-mode="${mode}"
+                    aria-pressed="${isActive}"
+                    aria-label="Heizungsmodus ${modeLabels[mode]}"
+                >
+                    <i
+                        class="mdi ${modeIcons[mode]}"
+                        aria-hidden="true"
+                    ></i>
+
+                    <span>
+                        ${modeLabels[mode]}
+                    </span>
+                </button>
+            `;
+        })
+        .join("");
+
+    return `
+        <div class="detail-card">
+            <div class="detail-card-title">
+                <i class="mdi mdi-radiator"></i>
+                Heizung
+            </div>
+
+            <div class="detail-climate-summary">
+                <div class="detail-climate-current">
+                    <span
+                        class="detail-climate-icon
+                            ${heatingState}"
+                        aria-hidden="true"
+                    >
+                        <i class="mdi mdi-radiator"></i>
+                    </span>
+
+                    <div class="detail-climate-values">
+                        <span class="detail-climate-temperature">
+                            Ist
+                            ${formatTemperature(
+                                room.temperature
+                            )} °C
+                        </span>
+
+                        <span class="detail-climate-target">
+                            Soll
+                            ${formatTemperature(
+                                room.heating.target
+                            )} °C
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="hvac-modes"
+                aria-label="Heizungsmodus"
+            >
+                ${modeButtons}
+            </div>
         </div>
     `;
 }
@@ -969,7 +1119,14 @@ function createRoomDetails(
             )
             .join("");
 
+    const climateMarkup =
+        createRoomClimateDetails(
+            sectionId,
+            room
+        );
+
     if (
+        climateMarkup === "" &&
         normalMarkup === "" &&
         heatingMarkup === "" &&
         rgbMarkup === ""
@@ -992,6 +1149,7 @@ function createRoomDetails(
     }
 
     return `
+        ${climateMarkup}
         ${normalMarkup}
         ${heatingMarkup}
         ${rgbMarkup}
@@ -1238,8 +1396,20 @@ modal.addEventListener(
             sectionId,
             roomId,
             functionId,
-            color
+            color,
+            hvacMode
         } = control.dataset;
+
+
+        if (modalAction === "select-hvac") {
+            selectHvacMode(
+                sectionId,
+                roomId,
+                hvacMode
+            );
+
+            return;
+        }
 
         if (modalAction === "toggle-detail") {
             const func =

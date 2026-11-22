@@ -410,3 +410,157 @@ body.modal-open {
         gap: 6px;
     }
 }
+
+.detail-climate-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    margin-bottom: 12px;
+}
+
+.detail-climate-current {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.detail-climate-icon {
+    width: 32px;
+    height: 32px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 32px;
+
+    border-radius: 999px;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    color: var(--muted);
+}
+
+.detail-climate-icon.ready {
+    background:
+        rgba(113, 183, 245, 0.18);
+
+    color: var(--temp);
+}
+
+.detail-climate-icon.heating {
+    background: #d9822b;
+    color: #17120a;
+}
+
+.detail-climate-icon .mdi {
+    font-size: 19px;
+}
+
+.detail-climate-values {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.detail-climate-temperature {
+    color: var(--temp);
+
+    font-size: 13px;
+    font-weight: 650;
+}
+
+.detail-climate-target {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.hvac-modes {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 7px;
+}
+
+.hvac-mode {
+    min-height: 34px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    padding: 6px 8px;
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+
+    color: var(--muted);
+
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        border-color 160ms ease,
+        background-color 160ms ease,
+        color 160ms ease;
+}
+
+.hvac-mode:hover {
+    border-color: var(--border-strong);
+    color: var(--text);
+}
+
+.hvac-mode.active {
+    border-color: var(--temp);
+
+    background:
+        rgba(113, 183, 245, 0.16);
+
+    color: var(--temp);
+}
+
+.hvac-mode.active[data-hvac-mode="heat"] {
+    border-color: #d9822b;
+
+    background:
+        rgba(217, 130, 43, 0.18);
+
+    color: #e69a4d;
+}
+
+.hvac-mode.active[data-hvac-mode="off"] {
+    border-color: var(--border-strong);
+
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    color: var(--text);
+}
+
+.hvac-mode:focus-visible {
+    outline: 2px solid var(--temp);
+    outline-offset: 2px;
+}
+
+.hvac-mode .mdi {
+    font-size: 16px;
+}
+
+@media (max-width: 370px) {
+    .hvac-mode {
+        gap: 4px;
+        padding-inline: 5px;
+        font-size: 10px;
+    }
+}
