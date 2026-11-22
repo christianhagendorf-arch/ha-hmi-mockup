@@ -75,6 +75,53 @@ input {
     font-size: 11px;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    flex: 0 0 auto;
+}
+
+.header-action {
+    min-height: 34px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    padding: 6px 11px;
+
+    border: 1px solid var(--border);
+    border-radius: 999px;
+
+    background: var(--surface);
+    color: var(--text);
+
+    font: inherit;
+    font-size: 12px;
+
+    cursor: pointer;
+
+    transition:
+        border-color 160ms ease,
+        background-color 160ms ease;
+}
+
+.header-action:hover {
+    border-color: var(--border-strong);
+}
+
+.header-action:focus-visible {
+    outline: 2px solid var(--temp);
+    outline-offset: 2px;
+}
+
+.header-action .mdi {
+    font-size: 17px;
+}
+
 .theme-toggle {
     min-height: 34px;
 
@@ -311,6 +358,14 @@ html[data-theme="light"]
     }
 
     .theme-toggle {
+        width: 32px;
+        padding: 0;
+    }
+    .header-action span {
+        display: none;
+    }
+
+    .header-action {
         width: 32px;
         padding: 0;
     }

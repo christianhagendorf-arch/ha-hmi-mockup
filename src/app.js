@@ -2,6 +2,12 @@ import { house } from "./data.js";
 
 const app = document.getElementById("app");
 
+const stateStorageKey =
+    "ha-hmi-demo-state";
+
+const resetDemoButton =
+    document.getElementById("reset-demo");
+
 const modal =
     document.getElementById("room-modal");
 
@@ -12,6 +18,66 @@ const modalContent =
     document.getElementById("modal-content");
 
 let lastFocusedElement = null;
+
+function loadSavedState() {
+    const savedState =
+        localStorage.getItem(
+            stateStorageKey
+        );
+
+    if (!savedState) {
+        return;
+    }
+
+    try {
+        const parsedState =
+            JSON.parse(savedState);
+
+        Object.keys(house).forEach(
+            (floorKey) => {
+                if (parsedState[floorKey]) {
+                    house[floorKey] =
+                        parsedState[floorKey];
+                }
+            }
+        );
+    } catch (error) {
+        console.warn(
+            "Gespeicherter Demozustand konnte nicht geladen werden.",
+            error
+        );
+
+        localStorage.removeItem(
+            stateStorageKey
+        );
+    }
+}
+
+function saveState() {
+    localStorage.setItem(
+        stateStorageKey,
+        JSON.stringify(house)
+    );
+}
+
+function resetDemoState() {
+    const confirmed =
+        window.confirm(
+            "Alle simulierten Geräte- und Heizungszustände zurücksetzen?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    localStorage.removeItem(
+        stateStorageKey
+    );
+
+    window.location.reload();
+}
+
+loadSavedState();
 
 const sections = [
     house.groundFloor,
@@ -490,7 +556,8 @@ function toggleFunction(sectionId, roomId, functionId) {
 
     func.state = !func.state;
 
-    render();
+    saveState();
+    render();    
 }
 
 function toggleHeating(sectionId, roomId) {
@@ -508,6 +575,7 @@ function toggleHeating(sectionId, roomId) {
             ? "auto"
             : "off";
 
+    saveState();
     render();
 }
 
@@ -529,7 +597,8 @@ function changeTemperature(sectionId, roomId, change) {
             24,
             Math.max(16, nextTarget)
         );
-
+    
+    saveState();
     render();
 }
 
@@ -549,7 +618,10 @@ function updateBrightness(
         return;
     }
 
-    func.brightness = Number(brightness);
+    func.brightness =
+        Number(brightness);
+
+    saveState();
 }
 
 function operateCover(sectionId, roomId, operation) {
@@ -574,6 +646,7 @@ function operateCover(sectionId, roomId, operation) {
         return;
     }
 
+    saveState();
     render();
 }
 
@@ -1130,6 +1203,8 @@ function changeWindowTemperature(
             Math.max(10, nextTarget)
         );
 
+    saveState();
+
     refreshOpenModal(
         sectionId,
         roomId
@@ -1177,6 +1252,8 @@ modal.addEventListener(
             if (func) {
                 func.state = !func.state;
 
+                saveState();
+
                 refreshOpenModal(
                     sectionId,
                     roomId
@@ -1201,6 +1278,8 @@ modal.addEventListener(
                         ? "heat"
                         : "off";
 
+                saveState();
+                
                 refreshOpenModal(
                     sectionId,
                     roomId
@@ -1242,6 +1321,8 @@ modal.addEventListener(
 
             if (func) {
                 func.selectedColor = color;
+
+                saveState();
 
                 refreshOpenModal(
                     sectionId,
@@ -1295,6 +1376,7 @@ modal.addEventListener(
 
         func.brightness =
             Number(slider.value);
+            saveState();
 
         const valueLabel =
             slider
@@ -1326,6 +1408,11 @@ viewNavigation.addEventListener(
             button.dataset.view
         );
     }
+);
+
+resetDemoButton.addEventListener(
+    "click",
+    resetDemoState
 );
 
 render();
