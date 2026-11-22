@@ -7,22 +7,22 @@
 
 ## 1. Purpose
 
-This document defines the target architecture and interaction principles for a new Home Assistant dashboard. The existing Home Assistant configuration is treated as a source of functional knowledge, not as a technical architecture to preserve.
+This document defines the target architecture and interaction principles for the new Home Assistant dashboard. The existing installation is a source of functional knowledge, not a technical architecture to preserve.
 
-The target is a compact, room-oriented Human-Machine Interface (HMI) that combines status and direct control. Daily functions must be usable without opening a popup wherever practical. Less frequently used settings and diagnostic information may be placed in room details or a separate technical view.
+The target is a compact, room-oriented Human-Machine Interface (HMI) that combines status and direct control. Daily functions must be usable without opening a popup wherever practical. Less frequently used settings and diagnostic information belong in room details or a separate technical view.
 
-## 2. Scope and guiding principles
+## 2. Guiding principles
 
 ### 2.1 Greenfield implementation
 
-The dashboard and supporting YAML structure will be rebuilt and optimized. Existing entity IDs, packages, automations, and dashboard files are not assumed to be suitable for reuse.
+The dashboard and supporting YAML structure will be rebuilt and optimized. Existing entity IDs, packages, automations, and dashboards are not assumed to be suitable for reuse.
 
 Existing code may be used to identify:
 
 - physical devices and their current function
 - room assignments
 - required automations
-- special technical dependencies
+- technical dependencies
 - established family terminology
 
 ### 2.2 HMI first
@@ -33,25 +33,23 @@ Examples:
 
 - Office and bedroom remain separate HMI rooms even though one physical switching logic controls both lighting functions.
 - Kitchen worktop and coffee corner remain separate HMI functions even if a physical Sonoff switch can operate both.
-- Technical device names such as `sonoff_11` are not shown to family users.
+- Technical names such as `sonoff_11` are not shown to family users.
 
 ### 2.3 Status and control are combined
 
-A control surface is also a status surface. Each visible control must communicate its current state.
-
-Examples:
+A control surface is also a status surface. Each visible control communicates its current state.
 
 - active lights use a visible active state
-- dimmers show the current brightness
-- heating shows room temperature and target temperature together
+- dimmers show current brightness
+- heating shows current room temperature and target temperature together
 - covers provide direct Up, Stop, and Down controls
 - washing machine and dryer are status objects, not power switches
 
 ### 2.4 Progressive disclosure
 
-Frequently used functions remain on the main room card. Less frequently used settings are moved to room details.
+Frequently used functions remain on the room card. Less frequently used settings move to room details.
 
-**Main card examples:**
+**Main-card examples:**
 
 - room temperature and heating target
 - primary lights and switches
@@ -61,7 +59,8 @@ Frequently used functions remain on the main room card. Less frequently used set
 
 **Room-detail examples:**
 
-- RGB color presets
+- HVAC mode selection
+- RGB presets
 - Lotta's window heating
 - separate office pinboard and platform controls
 - future cover position sliders
@@ -72,36 +71,30 @@ Documentation and implementation must remain maintainable without imposing unnec
 
 ## 3. Language model
 
-The project deliberately separates backend language from HMI language.
+The project separates backend language from HMI language.
 
 | Layer | Language | Example |
 |---|---|---|
-| Physical device and network name | English, with persistent hardware number | `sonoff-mini-11-heating-living-room` |
+| Physical device/network name | English, with persistent hardware number | `sonoff-mini-11-heating-living-room` |
 | Home Assistant entity ID | English | `climate.living_room` |
-| HMI room and function label | German, concise | `Wohnzimmer`, `Heizung`, `TV-Board` |
+| HMI room/function label | German, concise | `Wohnzimmer`, `Heizung`, `TV-Board` |
 
-German HMI labels may use familiar Anglicisms where they are shorter or more natural, for example `TV-Board`, `LED-Decke`, `RGB`, `Dimmer`, and `Auto`.
+Familiar Anglicisms are allowed when shorter or more natural, for example `TV-Board`, `LED-Decke`, `RGB`, `Dimmer`, and `Auto`.
 
 ## 4. Information architecture
 
 ### 4.1 Primary views
-
-The initial Home Assistant dashboard contains these views or equivalent filters:
 
 1. **Übersicht**
 2. **EG**
 3. **OG**
 4. **DG**
 5. **Garten**
-6. **Technik** (later phase)
+6. **Technik** in a later phase
 
 ### 4.2 Overview behavior
 
-The overview initially shows all rooms and all agreed primary controls. It is not reduced to favorites in the first implementation.
-
-Favorites and a more selective landing page may be introduced after real-world usage has shown which controls are most important.
-
-Weather is not part of the initial overview.
+The overview initially shows all rooms and all agreed primary controls. It is not reduced to favorites in the first implementation. Favorites may be introduced after real-world use has shown which controls matter most. Weather is excluded from the initial overview.
 
 ### 4.3 Section layout
 
@@ -112,18 +105,29 @@ On desktop, the overview presents four vertical sections next to each other:
 - Dachgeschoss
 - Garten
 
-On narrower screens, sections reflow responsively. Room-function controls use a two-column grid where usable. A single-column fallback is permitted only when controls or German labels become too narrow.
+On narrower screens, sections reflow responsively. Room controls use a two-column grid where usable. A single-column fallback is permitted only when controls or German labels become too narrow.
 
-### 4.4 Hall placement
+### 4.4 Floor and hall identifiers
 
-The hall is always the first room card in its floor section. The HMI label is simply `Flur`; the floor is implied by the containing section.
+Target structural keys are:
 
-Backend names remain unambiguous, for example:
+```text
+ground_floor
+first_floor
+second_floor
+garden
+```
 
-- `first_floor_hall`
-- `attic_hall`
+The hall is the first room card in its floor section. The HMI label is simply `Flur`; floor context comes from the section.
 
-Future stairwell lights will be assigned to one floor and one room rather than represented as cross-floor objects, unless practical use later demonstrates a need for a separate concept.
+Backend names remain unambiguous:
+
+```text
+first_floor_hall
+second_floor_hall
+```
+
+Future stairwell lights are assigned to one floor and one room unless practical use later demonstrates a need for a separate cross-floor concept.
 
 ## 5. Room-card architecture
 
@@ -139,9 +143,7 @@ A room card consists of:
 
 ### 5.2 Inline climate row
 
-For heated rooms, current room temperature and target setting are displayed on one horizontal line.
-
-Conceptual structure:
+For heated rooms, current room temperature and target setting are displayed on one horizontal line:
 
 ```text
 Ist 22,7 °C       [Heizung] [−] 21,5 °C [+]
@@ -151,40 +153,36 @@ Rules:
 
 - temperature step: `0.5 °C`
 - radiator icon acts as quick on/off control
-- complete HVAC selection is available in room details
+- HVAC selection is available in room details
 - supported HVAC modes: `off`, `auto`, `heat`
 - state colors distinguish off, enabled/idle, and actively heating
-- TRV temperature and diagnostic values are not shown on the family HMI
+- TRV values and diagnostic data are excluded from the family HMI
 
 ### 5.3 Lighting controls
 
-Lighting controls are classified by user capability rather than protocol or hardware type.
+Lighting is classified by user capability rather than protocol or hardware.
 
 | Capability | Main-card behavior |
 |---|---|
 | Switchable | icon and label, direct on/off |
 | Dimmable | switch plus brightness slider while on |
-| RGB-capable | switch plus brightness slider while on; colors in room details |
+| RGB-capable | switch plus brightness slider while on; colors in details |
 
-The brightness slider is hidden when the light is off. RGB presets and color controls are hidden from the main card.
+The brightness slider is hidden while the light is off. RGB presets and color controls are hidden from the main card.
 
 ### 5.4 Cover controls
 
-Covers are always visible on the main room card where present.
-
-Main-card controls:
+Covers remain visible on the main room card:
 
 - Up
 - Stop
 - Down
 
-A position slider is a detail function and is excluded from the initial main-card implementation.
+A position slider is a detail function and is excluded from the initial main card.
 
 ### 5.5 Status objects
 
-Washing machine and dryer are shown as read-only status objects.
-
-Example states:
+Washing machine and dryer are read-only status objects. Example states:
 
 - Bereit
 - Läuft
@@ -198,26 +196,17 @@ Underlying smart-plug state, power consumption, notification helpers, and state-
 
 #### Hauseingang
 
-Primary controls:
-
 - Außenbeleuchtung
 
 #### Wohnzimmer
-
-Primary controls:
 
 - Heizung
 - Bogenlampe
 - TV-Board
 
-Notes:
-
-- TV-Board is a primary function.
-- Bogenlamp brightness presets may be introduced later if they prove useful in the HMI.
+TV-Board is a primary function. Bogenlamp brightness presets may be introduced later if useful.
 
 #### Küche
-
-Primary controls:
 
 - Heizung
 - Arbeitsfläche, dimmable
@@ -225,38 +214,29 @@ Primary controls:
 - Essecke, switchable decorative light
 - Schwibbogen, switchable seasonal/decorative socket function
 
-Notes:
-
-- Worktop and coffee corner remain separate HMI functions.
-- Lighting groups and scenes are deferred until after initial real-world use.
+Worktop and coffee corner remain separate HMI functions. Lighting groups and scenes are deferred until after initial real-world use.
 
 #### Gästebad
 
-Primary controls/status:
-
-- Licht, with motion-sensor logic in the backend
+- Licht, with backend motion-sensor logic
 - Waschmaschine status
 - Trockner status
 
 #### Hauswirtschaftsraum
 
-Primary controls:
+- Licht, with backend motion-sensor logic
 
-- Licht, with motion-sensor logic in the backend
-
-The ground-floor hall is not shown because the former controllable light was removed during renovation.
+The ground-floor hall is not shown because its former controllable light was removed during renovation.
 
 ### 6.2 Obergeschoss
 
 #### Flur
 
-Primary controls:
-
 - Kommode, dimmable white LED strip
 
 #### Arbeitszimmer
 
-Primary controls:
+Main card:
 
 - Heizung
 - Rollladen, Up/Stop/Down
@@ -267,13 +247,11 @@ Room details:
 - Pinnwand, separate switch
 - Podest, separate dimmable light
 
-Notes:
-
-- Pinnwand and Podest are technically coupled by a physical switch but may be controlled separately in room details.
+Pinnwand and Podest are technically coupled by a physical switch but may be controlled separately in details.
 
 #### Schlafzimmer
 
-Primary controls:
+Main card:
 
 - Heizung
 - Rollladen, Up/Stop/Down
@@ -283,13 +261,9 @@ Room details:
 
 - RGB presets for Schlafzimmerlicht
 
-Notes:
-
-- Office and bedroom are distinct HMI rooms despite shared physical switching logic caused by the later room division and single ceiling outlet.
+Office and bedroom remain distinct HMI rooms despite shared physical switching logic caused by the later room division and single ceiling outlet.
 
 #### Gästezimmer
-
-Primary controls:
 
 - Heizung
 - Tischlampe, dimmable
@@ -298,13 +272,11 @@ Primary controls:
 
 #### Flur
 
-Primary controls:
-
 - Schuhschrank
 
 #### Lotta
 
-Primary controls:
+Main card:
 
 - Heizung
 - LED-Decke, dimmable and RGB-capable
@@ -316,15 +288,11 @@ Room details:
 - Fensterheizung with own on/off and target temperature
 - RGB presets for LED-Decke
 
-Notes:
-
-- Fensterheizung is a second climate function used primarily in cold weather to reduce condensation.
-- Its target is adjustable but typically changed infrequently.
-- Future automation based on outdoor temperature or condensation indicators is possible.
+The window heating is a second climate function used mainly in cold weather to reduce condensation. Its target is adjustable but usually changed infrequently. Future automation based on outdoor temperature or condensation indicators is possible.
 
 #### Lene
 
-Primary controls:
+Main card:
 
 - Heizung
 - LED-Decke, dimmable and RGB-capable
@@ -337,13 +305,9 @@ Room details:
 
 #### Terrasse
 
-Primary controls:
-
 - Terrassenlicht, technically a switched socket used for lighting
 
 #### Kinderhaus
-
-Primary controls:
 
 - Dachbeleuchtung
 - Stern
@@ -353,9 +317,7 @@ The Kinderhaus is treated as a normal room card and receives no special hero tre
 
 ## 7. Detail views and popups
 
-Room details are used for secondary controls, not as a prerequisite for common actions.
-
-A room popup may contain:
+Room details are used for secondary controls, not as a prerequisite for common actions. A popup may contain:
 
 - HVAC mode selection
 - RGB presets
@@ -363,12 +325,7 @@ A room popup may contain:
 - Lotta's window heating
 - future cover-position control
 
-The popup must work as:
-
-- centered dialog on desktop/tablet
-- bottom sheet on smartphone
-
-The main card remains usable if the popup is never opened.
+The popup works as a centered dialog on desktop/tablet and a bottom sheet on smartphone. The main card remains usable if the popup is never opened.
 
 ## 8. Theme and visual system
 
@@ -383,7 +340,7 @@ Theme switching may initially be manual. Automatic switching based on time or so
 
 ### 8.2 Light-theme hierarchy
 
-The light theme must maintain visible separation between hierarchy levels:
+The light theme maintains visible separation between:
 
 1. dashboard background
 2. floor/section container
@@ -402,8 +359,6 @@ Sections and room cards require visible borders. The interface must not rely on 
 
 ### 8.4 State colors
 
-Initial semantic color system:
-
 | State/function | Color behavior |
 |---|---|
 | Inactive/off | neutral gray |
@@ -414,7 +369,7 @@ Initial semantic color system:
 | Finished appliance | green |
 | Error/unavailable | red, reserved for true faults |
 
-Exact colors will be refined in Home Assistant themes rather than treated as fixed by the HTML prototype.
+Exact colors are refined in Home Assistant themes rather than treated as fixed by the HTML prototype.
 
 ## 9. Family HMI and technical view separation
 
@@ -446,13 +401,11 @@ A later technical view may contain:
 - MQTT and Zigbee2MQTT status
 - device batteries and maintenance information
 
-Technical data must not clutter the family HMI.
+Technical data does not clutter the family HMI.
 
 ## 10. Backend boundary
 
-The HMI architecture does not prescribe direct exposure of physical entities. A functional Home Assistant entity may abstract one or more physical devices.
-
-Conceptual layers:
+A functional Home Assistant entity may abstract one or more physical devices:
 
 ```text
 Physical device
@@ -470,11 +423,11 @@ sonoff-mini-11-heating-living-room
 → HMI: Wohnzimmer / Heizung
 ```
 
-Physical numbering remains documented and traceable for maintenance, Fritz!Box identification, replacement, and fault diagnosis.
+Physical numbering remains traceable for maintenance, Fritz!Box identification, replacement, and fault diagnosis.
 
 ## 11. Implementation strategy
 
-The Lovelace implementation will follow a room-by-room pilot approach:
+The Lovelace implementation follows a room-by-room pilot:
 
 1. Wohnzimmer
 2. Küche
@@ -482,20 +435,9 @@ The Lovelace implementation will follow a room-by-room pilot approach:
 4. remaining rooms by floor
 5. technical view
 
-The Wohnzimmer pilot validates:
-
-- Sections layout
-- Mushroom climate control
-- inline current/target-temperature arrangement
-- primary switches
-- themes
-- responsive behavior
-
-The Kitchen pilot adds multiple lights and conditional dimmers. The Office pilot adds covers, grouping, and separated detail controls.
+The Wohnzimmer pilot validates Sections layout, Mushroom climate control, inline temperatures, primary switches, themes, and responsive behavior. Kitchen adds multiple lights and conditional dimmers. Office adds covers, grouping, and separated detail controls.
 
 ## 12. Out of scope for the initial YAML pilot
-
-The following items are deliberately deferred:
 
 - favorites-based landing page
 - weather card
@@ -515,6 +457,7 @@ The following items are deliberately deferred:
 | Existing code used only as functional evidence | Approved |
 | Backend identifiers in English | Approved |
 | Family HMI in concise German | Approved |
+| Structural floor keys: `ground_floor`, `first_floor`, `second_floor`, `garden` | Approved |
 | Overview initially shows all rooms/functions | Approved |
 | Four floor/garden sections on desktop | Approved |
 | Hall first in each floor section | Approved |
@@ -530,8 +473,6 @@ The following items are deliberately deferred:
 | Final colors refined in HA themes | Approved |
 
 ## 14. Related project documents
-
-This document is complemented by:
 
 - `ENTITY_NAMING.md`
 - `HARDWARE_INVENTORY.md`
