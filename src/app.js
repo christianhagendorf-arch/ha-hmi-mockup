@@ -2,6 +2,17 @@ import { house } from "./data.js";
 
 const app = document.getElementById("app");
 
+const modal =
+    document.getElementById("room-modal");
+
+const modalTitle =
+    document.getElementById("modal-title");
+
+const modalContent =
+    document.getElementById("modal-content");
+
+let lastFocusedElement = null;
+
 const sections = [
     house.groundFloor,
     house.upperFloor,
@@ -292,9 +303,24 @@ function createRoom(sectionId, room) {
     return `
         <article class="room">
             <div class="room-title">
-                ${room.label}
-            </div>
+                <button
+                    type="button"
+                    class="room-title-button"
+                    data-action="open-room"
+                    data-section-id="${sectionId}"
+                    data-room-id="${room.id}"
+                    aria-label="Details für ${room.label} öffnen"
+                >
+                    <span>
+                        ${room.label}
+                    </span>
 
+                    <i
+                        class="mdi mdi-chevron-right room-title-chevron"
+                        aria-hidden="true"
+                    ></i>
+                </button>
+            </div>
             ${createHeatingRow(sectionId, room)}
             ${createCoverControl(sectionId, room)}
 
@@ -453,6 +479,97 @@ function operateCover(sectionId, roomId, operation) {
     render();
 }
 
+function createRoomDetails(room) {
+    const detailCount =
+        room.detailFunctions?.length ?? 0;
+
+    const rgbLights =
+        room.functions.filter(
+            (func) => func.type === "rgb-dimmer"
+        );
+
+    if (
+        detailCount === 0 &&
+        rgbLights.length === 0 &&
+        room.id !== "office"
+    ) {
+        return `
+            <div class="detail-card">
+                <div class="detail-card-title">
+                    <i class="mdi mdi-information-outline"></i>
+                    Übersicht
+                </div>
+
+                <p class="detail-note">
+                    Für diesen Raum sind momentan keine
+                    zusätzlichen Detailfunktionen definiert.
+                    Die täglichen Funktionen können direkt
+                    auf der Hauptseite bedient werden.
+                </p>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="detail-card">
+            <div class="detail-card-title">
+                <i class="mdi mdi-tune-variant"></i>
+                Zusätzliche Funktionen
+            </div>
+
+            <p class="detail-note">
+                Die konkreten Detailsteuerungen werden im
+                nächsten Teilschritt ergänzt. Dieser Test
+                prüft zunächst Navigation, Darstellung und
+                responsives Popup-Verhalten.
+            </p>
+        </div>
+    `;
+}
+
+function openRoomModal(sectionId, roomId) {
+    const room = findRoom(
+        sectionId,
+        roomId
+    );
+
+    if (!room) {
+        return;
+    }
+
+    lastFocusedElement =
+        document.activeElement;
+
+    modalTitle.textContent =
+        room.label;
+
+    modalContent.innerHTML =
+        createRoomDetails(room);
+
+    modal.hidden = false;
+
+    document.body.classList.add(
+        "modal-open"
+    );
+
+    const closeButton =
+        modal.querySelector(".modal-close");
+
+    closeButton?.focus();
+}
+
+function closeRoomModal() {
+    modal.hidden = true;
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+
+    lastFocusedElement?.focus();
+
+    lastFocusedElement = null;
+}
+
 app.addEventListener("click", (event) => {
     const control =
         event.target.closest("[data-action]");
@@ -467,6 +584,15 @@ app.addEventListener("click", (event) => {
         roomId,
         functionId
     } = control.dataset;
+
+    if (action === "open-room") {
+        openRoomModal(
+            sectionId,
+            roomId
+        );
+
+        return;
+    }
 
     if (action === "toggle-function") {
         toggleFunction(
@@ -556,5 +682,31 @@ app.addEventListener("input", (event) => {
             `${slider.value} %`;
     }
 });
+
+modal.addEventListener(
+    "click",
+    (event) => {
+        const closeControl =
+            event.target.closest(
+                '[data-action="close-modal"]'
+            );
+
+        if (closeControl) {
+            closeRoomModal();
+        }
+    }
+);
+
+document.addEventListener(
+    "keydown",
+    (event) => {
+        if (
+            event.key === "Escape" &&
+            !modal.hidden
+        ) {
+            closeRoomModal();
+        }
+    }
+);
 
 render();

@@ -16,20 +16,10 @@
         href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css"
     >
 
-    <link
-        rel="stylesheet"
-        href="./css/variables.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="./css/layout.css"
-    >
-
-    <link
-        rel="stylesheet"
-        href="./css/cards.css"
-    >
+    <link rel="stylesheet" href="./css/variables.css">
+    <link rel="stylesheet" href="./css/layout.css">
+    <link rel="stylesheet" href="./css/cards.css">
+    <link rel="stylesheet" href="./css/modal.css">
 </head>
 
 <body>
@@ -64,6 +54,51 @@
     </header>
 
     <main id="app"></main>
+
+    <div
+        id="room-modal"
+        class="modal"
+        hidden
+    >
+        <div
+            class="modal-backdrop"
+            data-action="close-modal"
+        ></div>
+
+        <section
+            class="modal-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+        >
+            <header class="modal-header">
+                <div>
+                    <div class="modal-eyebrow">
+                        Raumdetails
+                    </div>
+
+                    <h2 id="modal-title">
+                        Raum
+                    </h2>
+                </div>
+
+                <button
+                    type="button"
+                    class="modal-close"
+                    data-action="close-modal"
+                    aria-label="Raumdetails schließen"
+                    title="Schließen"
+                >
+                    <i class="mdi mdi-close"></i>
+                </button>
+            </header>
+
+            <div
+                id="modal-content"
+                class="modal-content"
+            ></div>
+        </section>
+    </div>
 
     <script
         type="module"
