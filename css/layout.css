@@ -115,6 +115,67 @@ input {
     font-size: 17px;
 }
 
+.view-navigation {
+    max-width: 1920px;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    margin: 10px auto 0;
+
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+
+    scrollbar-width: none;
+}
+
+.view-navigation::-webkit-scrollbar {
+    display: none;
+}
+
+.view-navigation-button {
+    min-height: 32px;
+
+    flex: 0 0 auto;
+
+    padding: 5px 12px;
+
+    border: 1px solid transparent;
+    border-radius: 999px;
+
+    background: transparent;
+    color: var(--muted);
+
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        border-color 160ms ease,
+        background-color 160ms ease,
+        color 160ms ease;
+}
+
+.view-navigation-button:hover {
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.view-navigation-button.active {
+    border-color: var(--border-strong);
+
+    background: var(--surface);
+    color: var(--text);
+}
+
+.view-navigation-button:focus-visible {
+    outline: 2px solid var(--temp);
+    outline-offset: 2px;
+}
+
 #app {
     max-width: 1920px;
 
@@ -131,6 +192,13 @@ input {
     gap: 16px;
 
     align-items: start;
+}
+
+.house-grid.single-section-view {
+    grid-template-columns:
+        minmax(280px, 520px);
+
+    justify-content: start;
 }
 
 .section {
@@ -196,6 +264,16 @@ html[data-theme="light"]
 
     .header-subtitle {
         display: none;
+    }
+    
+    .view-navigation {
+        gap: 5px;
+        margin-top: 8px;
+    }
+
+    .view-navigation-button {
+        min-height: 30px;
+        padding: 4px 11px;
     }
 
     #app {

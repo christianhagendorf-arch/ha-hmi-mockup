@@ -10,7 +10,7 @@
     >
 
     <title>HA HMI Mockup</title>
-    
+
     <link rel="icon" href="data:,">
 
     <link
@@ -53,6 +53,56 @@
                 </span>
             </button>
         </div>
+
+        <nav
+            class="view-navigation"
+            aria-label="Dashboard-Ansicht"
+        >
+            <button
+                type="button"
+                class="view-navigation-button active"
+                data-view="overview"
+                aria-pressed="true"
+            >
+                Übersicht
+            </button>
+
+            <button
+                type="button"
+                class="view-navigation-button"
+                data-view="ground_floor"
+                aria-pressed="false"
+            >
+                EG
+            </button>
+
+            <button
+                type="button"
+                class="view-navigation-button"
+                data-view="upper_floor"
+                aria-pressed="false"
+            >
+                OG
+            </button>
+
+            <button
+                type="button"
+                class="view-navigation-button"
+                data-view="attic_floor"
+                aria-pressed="false"
+            >
+                DG
+            </button>
+
+            <button
+                type="button"
+                class="view-navigation-button"
+                data-view="garden"
+                aria-pressed="false"
+            >
+                Garten
+            </button>
+        </nav>
     </header>
 
     <main id="app"></main>

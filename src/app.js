@@ -20,6 +20,19 @@ const sections = [
     house.garden
 ];
 
+const viewStorageKey =
+    "ha-hmi-active-view";
+
+const viewNavigation =
+    document.querySelector(
+        ".view-navigation"
+    );
+
+let activeView =
+    localStorage.getItem(
+        viewStorageKey
+    ) ?? "overview";
+
 function formatTemperature(value) {
     return value
         .toFixed(1)
@@ -386,12 +399,82 @@ function findDetailFunction(
     );
 }
 
+function getVisibleSections() {
+    if (activeView === "overview") {
+        return sections;
+    }
+
+    return sections.filter(
+        (section) =>
+            section.id === activeView
+    );
+}
+
 function render() {
+    const visibleSections =
+        getVisibleSections();
+
+    const viewClass =
+        activeView === "overview"
+            ? "overview-view"
+            : "single-section-view";
+
     app.innerHTML = `
-        <div class="house-grid">
-            ${sections.map(createSection).join("")}
+        <div class="house-grid ${viewClass}">
+            ${visibleSections
+                .map(createSection)
+                .join("")}
         </div>
     `;
+
+    updateNavigation();
+}
+
+function updateNavigation() {
+    const buttons =
+        viewNavigation.querySelectorAll(
+            "[data-view]"
+        );
+
+    buttons.forEach((button) => {
+        const isActive =
+            button.dataset.view ===
+            activeView;
+
+        button.classList.toggle(
+            "active",
+            isActive
+        );
+
+        button.setAttribute(
+            "aria-pressed",
+            String(isActive)
+        );
+    });
+}
+
+function changeView(view) {
+    const validViews = [
+        "overview",
+        ...sections.map(
+            (section) => section.id
+        )
+    ];
+
+    if (!validViews.includes(view)) {
+        return;
+    }
+
+    activeView = view;
+
+    localStorage.setItem(
+        viewStorageKey,
+        activeView
+    );
+
+    closeRoomModal();
+
+    render();
 }
 
 function toggleFunction(sectionId, roomId, functionId) {
@@ -1224,6 +1307,24 @@ modal.addEventListener(
             valueLabel.textContent =
                 `${slider.value} %`;
         }
+    }
+);
+
+viewNavigation.addEventListener(
+    "click",
+    (event) => {
+        const button =
+            event.target.closest(
+                "[data-view]"
+            );
+
+        if (!button) {
+            return;
+        }
+
+        changeView(
+            button.dataset.view
+        );
     }
 );
 
