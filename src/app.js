@@ -371,6 +371,21 @@ function findFunction(sectionId, roomId, functionId) {
     );
 }
 
+function findDetailFunction(
+    sectionId,
+    roomId,
+    functionId
+) {
+    const room = findRoom(
+        sectionId,
+        roomId
+    );
+
+    return room?.detailFunctions?.find(
+        (func) => func.id === functionId
+    );
+}
+
 function render() {
     app.innerHTML = `
         <div class="house-grid">
@@ -479,19 +494,329 @@ function operateCover(sectionId, roomId, operation) {
     render();
 }
 
-function createRoomDetails(room) {
-    const detailCount =
-        room.detailFunctions?.length ?? 0;
+function getDetailFunctionIcon(func) {
+    const icons = {
+        office_pinboard:
+            "mdi-lightbulb-outline",
+
+        office_platform:
+            "mdi-led-strip-variant",
+
+        window_heating:
+            "mdi-radiator"
+    };
+
+    return (
+        icons[func.id] ??
+        `mdi-${func.icon ?? "tune-variant"}`
+    );
+}
+
+function createDetailDimmer(
+    sectionId,
+    roomId,
+    func
+) {
+    if (
+        !supportsDimmer(func) ||
+        func.state !== true
+    ) {
+        return "";
+    }
+
+    return `
+        <div class="detail-dimmer">
+            <input
+                type="range"
+                min="1"
+                max="100"
+                step="1"
+                value="${func.brightness}"
+                data-modal-action="detail-brightness"
+                data-section-id="${sectionId}"
+                data-room-id="${roomId}"
+                data-function-id="${func.id}"
+                aria-label="Helligkeit ${func.label}"
+            >
+
+            <span class="detail-dimmer-value">
+                ${func.brightness} %
+            </span>
+        </div>
+    `;
+}
+
+function createDetailFunction(
+    sectionId,
+    roomId,
+    func
+) {
+    const isActive =
+        func.state === true;
+
+    const icon =
+        getDetailFunctionIcon(func);
+
+    return `
+        <div class="detail-control">
+            <div class="detail-control-header">
+                <button
+                    type="button"
+                    class="detail-toggle
+                        ${isActive ? "active" : ""}"
+                    data-modal-action="toggle-detail"
+                    data-section-id="${sectionId}"
+                    data-room-id="${roomId}"
+                    data-function-id="${func.id}"
+                    aria-pressed="${isActive}"
+                    aria-label="${func.label} schalten"
+                >
+                    <i class="mdi ${icon}"></i>
+                </button>
+
+                <span class="detail-label">
+                    ${func.label}
+                </span>
+            </div>
+
+            ${createDetailDimmer(
+                sectionId,
+                roomId,
+                func
+            )}
+        </div>
+    `;
+}
+
+function createWindowHeating(
+    sectionId,
+    roomId,
+    func
+) {
+    const isActive =
+        func.hvac !== "off";
+
+    return `
+        <div class="detail-card">
+            <div class="detail-card-title">
+                <i class="mdi mdi-window-closed-variant"></i>
+                Fensterheizung
+            </div>
+
+            <div class="detail-heating-row">
+                <div class="detail-heating-status">
+                    <button
+                        type="button"
+                        class="detail-toggle
+                            ${isActive ? "active" : ""}"
+                        data-modal-action="toggle-window-heating"
+                        data-section-id="${sectionId}"
+                        data-room-id="${roomId}"
+                        data-function-id="${func.id}"
+                        aria-pressed="${isActive}"
+                        aria-label="Fensterheizung schalten"
+                    >
+                        <i class="mdi mdi-radiator"></i>
+                    </button>
+
+                    <div class="detail-heating-values">
+                        <span class="detail-current-temperature">
+                            Ist
+                            ${formatTemperature(
+                                func.temperature
+                            )} °C
+                        </span>
+
+                        <span class="detail-secondary">
+                            Kondensationsschutz
+                        </span>
+                    </div>
+                </div>
+
+                <div class="detail-temperature-control">
+                    <button
+                        type="button"
+                        class="temperature-button"
+                        data-modal-action="window-temperature-down"
+                        data-section-id="${sectionId}"
+                        data-room-id="${roomId}"
+                        data-function-id="${func.id}"
+                        aria-label="Solltemperatur senken"
+                    >
+                        −
+                    </button>
+
+                    <span class="detail-temperature-value">
+                        ${formatTemperature(
+                            func.target
+                        )} °
+                    </span>
+
+                    <button
+                        type="button"
+                        class="temperature-button"
+                        data-modal-action="window-temperature-up"
+                        data-section-id="${sectionId}"
+                        data-room-id="${roomId}"
+                        data-function-id="${func.id}"
+                        aria-label="Solltemperatur erhöhen"
+                    >
+                        +
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function createRgbDetails(
+    sectionId,
+    roomId,
+    func
+) {
+    const selectedColor =
+        func.selectedColor ?? "warm-white";
+
+    const presets = [
+        {
+            id: "warm-white",
+            label: "Warmweiß",
+            icon: "mdi-white-balance-sunny"
+        },
+        {
+            id: "red",
+            label: "Rot",
+            icon: "mdi-circle"
+        },
+        {
+            id: "green",
+            label: "Grün",
+            icon: "mdi-circle"
+        },
+        {
+            id: "blue",
+            label: "Blau",
+            icon: "mdi-circle"
+        },
+        {
+            id: "purple",
+            label: "Violett",
+            icon: "mdi-circle"
+        }
+    ];
+
+    const buttons = presets
+        .map((preset) => `
+            <button
+                type="button"
+                class="color-preset
+                    ${
+                        selectedColor === preset.id
+                            ? "selected"
+                            : ""
+                    }"
+                data-modal-action="select-color"
+                data-section-id="${sectionId}"
+                data-room-id="${roomId}"
+                data-function-id="${func.id}"
+                data-color="${preset.id}"
+                title="${preset.label}"
+                aria-label="${preset.label}"
+                aria-pressed="${
+                    selectedColor === preset.id
+                }"
+            >
+                <i class="mdi ${preset.icon}"></i>
+            </button>
+        `)
+        .join("");
+
+    return `
+        <div class="detail-card">
+            <div class="detail-card-title">
+                <i class="mdi mdi-palette-outline"></i>
+                ${func.label} · Farbe
+            </div>
+
+            <div class="color-presets">
+                ${buttons}
+            </div>
+        </div>
+    `;
+}
+
+function createRoomDetails(
+    sectionId,
+    room
+) {
+    const detailFunctions =
+        room.detailFunctions ?? [];
+
+    const normalDetails =
+        detailFunctions.filter(
+            (func) => func.type !== "heating"
+        );
+
+    const heatingDetails =
+        detailFunctions.filter(
+            (func) => func.type === "heating"
+        );
 
     const rgbLights =
         room.functions.filter(
             (func) => func.type === "rgb-dimmer"
         );
 
+    const normalMarkup =
+        normalDetails.length > 0
+            ? `
+                <div class="detail-card">
+                    <div class="detail-card-title">
+                        <i class="mdi mdi-lightbulb-group-outline"></i>
+                        Beleuchtung
+                    </div>
+
+                    <div class="detail-grid">
+                        ${normalDetails
+                            .map((func) =>
+                                createDetailFunction(
+                                    sectionId,
+                                    room.id,
+                                    func
+                                )
+                            )
+                            .join("")}
+                    </div>
+                </div>
+            `
+            : "";
+
+    const heatingMarkup =
+        heatingDetails
+            .map((func) =>
+                createWindowHeating(
+                    sectionId,
+                    room.id,
+                    func
+                )
+            )
+            .join("");
+
+    const rgbMarkup =
+        rgbLights
+            .map((func) =>
+                createRgbDetails(
+                    sectionId,
+                    room.id,
+                    func
+                )
+            )
+            .join("");
+
     if (
-        detailCount === 0 &&
-        rgbLights.length === 0 &&
-        room.id !== "office"
+        normalMarkup === "" &&
+        heatingMarkup === "" &&
+        rgbMarkup === ""
     ) {
         return `
             <div class="detail-card">
@@ -500,30 +825,20 @@ function createRoomDetails(room) {
                     Übersicht
                 </div>
 
-                <p class="detail-note">
+                <p class="detail-empty">
                     Für diesen Raum sind momentan keine
                     zusätzlichen Detailfunktionen definiert.
-                    Die täglichen Funktionen können direkt
-                    auf der Hauptseite bedient werden.
+                    Die täglichen Funktionen werden direkt
+                    auf der Hauptseite bedient.
                 </p>
             </div>
         `;
     }
 
     return `
-        <div class="detail-card">
-            <div class="detail-card-title">
-                <i class="mdi mdi-tune-variant"></i>
-                Zusätzliche Funktionen
-            </div>
-
-            <p class="detail-note">
-                Die konkreten Detailsteuerungen werden im
-                nächsten Teilschritt ergänzt. Dieser Test
-                prüft zunächst Navigation, Darstellung und
-                responsives Popup-Verhalten.
-            </p>
-        </div>
+        ${normalMarkup}
+        ${heatingMarkup}
+        ${rgbMarkup}
     `;
 }
 
@@ -544,7 +859,10 @@ function openRoomModal(sectionId, roomId) {
         room.label;
 
     modalContent.innerHTML =
-        createRoomDetails(room);
+        createRoomDetails(
+            sectionId,
+            room
+        );
 
     modal.hidden = false;
 
@@ -568,6 +886,26 @@ function closeRoomModal() {
     lastFocusedElement?.focus();
 
     lastFocusedElement = null;
+}
+
+function refreshOpenModal(
+    sectionId,
+    roomId
+) {
+    const room = findRoom(
+        sectionId,
+        roomId
+    );
+
+    if (!room || modal.hidden) {
+        return;
+    }
+
+    modalContent.innerHTML =
+        createRoomDetails(
+            sectionId,
+            room
+        );
 }
 
 app.addEventListener("click", (event) => {
@@ -683,6 +1021,38 @@ app.addEventListener("input", (event) => {
     }
 });
 
+function changeWindowTemperature(
+    sectionId,
+    roomId,
+    functionId,
+    change
+) {
+    const func =
+        findDetailFunction(
+            sectionId,
+            roomId,
+            functionId
+        );
+
+    if (!func || func.type !== "heating") {
+        return;
+    }
+
+    const nextTarget =
+        func.target + change;
+
+    func.target =
+        Math.min(
+            24,
+            Math.max(10, nextTarget)
+        );
+
+    refreshOpenModal(
+        sectionId,
+        roomId
+    );
+}
+
 modal.addEventListener(
     "click",
     (event) => {
@@ -693,6 +1063,108 @@ modal.addEventListener(
 
         if (closeControl) {
             closeRoomModal();
+            return;
+        }
+
+        const control =
+            event.target.closest(
+                "[data-modal-action]"
+            );
+
+        if (!control) {
+            return;
+        }
+
+        const {
+            modalAction,
+            sectionId,
+            roomId,
+            functionId,
+            color
+        } = control.dataset;
+
+        if (modalAction === "toggle-detail") {
+            const func =
+                findDetailFunction(
+                    sectionId,
+                    roomId,
+                    functionId
+                );
+
+            if (func) {
+                func.state = !func.state;
+
+                refreshOpenModal(
+                    sectionId,
+                    roomId
+                );
+            }
+        }
+
+        if (
+            modalAction ===
+            "toggle-window-heating"
+        ) {
+            const func =
+                findDetailFunction(
+                    sectionId,
+                    roomId,
+                    functionId
+                );
+
+            if (func) {
+                func.hvac =
+                    func.hvac === "off"
+                        ? "heat"
+                        : "off";
+
+                refreshOpenModal(
+                    sectionId,
+                    roomId
+                );
+            }
+        }
+
+        if (
+            modalAction ===
+            "window-temperature-down"
+        ) {
+            changeWindowTemperature(
+                sectionId,
+                roomId,
+                functionId,
+                -0.5
+            );
+        }
+
+        if (
+            modalAction ===
+            "window-temperature-up"
+        ) {
+            changeWindowTemperature(
+                sectionId,
+                roomId,
+                functionId,
+                0.5
+            );
+        }
+
+        if (modalAction === "select-color") {
+            const func =
+                findFunction(
+                    sectionId,
+                    roomId,
+                    functionId
+                );
+
+            if (func) {
+                func.selectedColor = color;
+
+                refreshOpenModal(
+                    sectionId,
+                    roomId
+                );
+            }
         }
     }
 );
@@ -705,6 +1177,52 @@ document.addEventListener(
             !modal.hidden
         ) {
             closeRoomModal();
+        }
+    }
+);
+
+modal.addEventListener(
+    "input",
+    (event) => {
+        const slider =
+            event.target.closest(
+                '[data-modal-action="detail-brightness"]'
+            );
+
+        if (!slider) {
+            return;
+        }
+
+        const {
+            sectionId,
+            roomId,
+            functionId
+        } = slider.dataset;
+
+        const func =
+            findDetailFunction(
+                sectionId,
+                roomId,
+                functionId
+            );
+
+        if (!func || !supportsDimmer(func)) {
+            return;
+        }
+
+        func.brightness =
+            Number(slider.value);
+
+        const valueLabel =
+            slider
+                .closest(".detail-dimmer")
+                ?.querySelector(
+                    ".detail-dimmer-value"
+                );
+
+        if (valueLabel) {
+            valueLabel.textContent =
+                `${slider.value} %`;
         }
     }
 );

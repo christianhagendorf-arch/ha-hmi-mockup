@@ -187,3 +187,226 @@ body.modal-open {
         padding: 14px;
     }
 }
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+}
+
+.detail-control {
+    min-width: 0;
+
+    padding: 10px;
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.035);
+}
+
+.detail-control-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-toggle {
+    width: 30px;
+    height: 30px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    flex: 0 0 30px;
+
+    padding: 0;
+
+    border: 0;
+    border-radius: 999px;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    color: var(--muted);
+
+    cursor: pointer;
+}
+
+.detail-toggle.active {
+    background: #c58a24;
+    color: #17120a;
+}
+
+.detail-toggle .mdi {
+    font-size: 18px;
+}
+
+.detail-label {
+    min-width: 0;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.detail-dimmer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 32px;
+    align-items: center;
+    gap: 8px;
+
+    margin-top: 10px;
+}
+
+.detail-dimmer input {
+    width: 100%;
+    min-width: 0;
+
+    accent-color: var(--accent);
+}
+
+.detail-dimmer-value {
+    color: var(--muted);
+
+    font-size: 10px;
+    text-align: right;
+}
+
+.detail-heating-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.detail-heating-status {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.detail-heating-values {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.detail-current-temperature {
+    color: var(--temp);
+
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.detail-secondary {
+    color: var(--muted);
+    font-size: 10px;
+}
+
+.detail-temperature-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.detail-temperature-value {
+    min-width: 49px;
+
+    text-align: center;
+
+    font-size: 12px;
+    font-weight: 650;
+}
+
+.color-presets {
+    display: grid;
+    grid-template-columns:
+        repeat(5, minmax(36px, 1fr));
+
+    gap: 8px;
+}
+
+.color-preset {
+    min-width: 0;
+    height: 38px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    border: 2px solid transparent;
+    border-radius: 11px;
+
+    cursor: pointer;
+}
+
+.color-preset:hover {
+    border-color: var(--text);
+}
+
+.color-preset.selected {
+    border-color: var(--text);
+
+    box-shadow:
+        0 0 0 2px var(--surface);
+}
+
+.color-preset[data-color="warm-white"] {
+    background: #ffd89a;
+}
+
+.color-preset[data-color="red"] {
+    background: #ef4444;
+}
+
+.color-preset[data-color="green"] {
+    background: #22c55e;
+}
+
+.color-preset[data-color="blue"] {
+    background: #3b82f6;
+}
+
+.color-preset[data-color="purple"] {
+    background: #a855f7;
+}
+
+.color-preset .mdi {
+    color: rgba(10, 15, 22, 0.84);
+    font-size: 18px;
+}
+
+.detail-empty {
+    margin: 0;
+
+    color: var(--muted);
+
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+@media (max-width: 430px) {
+    .detail-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+    }
+
+    .detail-control {
+        padding: 8px;
+    }
+
+    .color-presets {
+        grid-template-columns:
+            repeat(5, minmax(32px, 1fr));
+
+        gap: 6px;
+    }
+}

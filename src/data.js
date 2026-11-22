@@ -201,6 +201,25 @@ export const house = {
                     position: 100
                 },
 
+                detailFunctions: [
+                    {
+                        id: "office_pinboard",
+                        label: "Pinnwand",
+                        type: "switch",
+                        icon: "lightbulb-outline",
+                        state: true
+                    },
+
+                    {
+                        id: "office_platform",
+                        label: "Podest",
+                        type: "dimmer",
+                        icon: "led-strip-variant",
+                        state: true,
+                        brightness: 40
+                    }
+                ],
+
                 functions: [
 
                     {
@@ -307,11 +326,12 @@ export const house = {
                 },
 
                 detailFunctions: [
-
                     {
                         id: "window_heating",
                         label: "Fensterheizung",
                         type: "heating",
+                        icon: "radiator",
+                        temperature: 18.4,
                         target: 19.0,
                         hvac: "heat"
                     }
